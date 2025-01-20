@@ -19,6 +19,9 @@ find_package(OpenGL REQUIRED)
 find_library(GLEW_LIBRARY GLEW)
 include_directories(/usr/include/GL)
 
+# Find GLM
+find_package(glm REQUIRED)
+
 # imgui
 set(IMGUI_SRC_FILES
   ${CMAKE_CURRENT_SOURCE_DIR}/libs/imgui/imgui_demo.cpp
@@ -42,7 +45,9 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/l
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/libs/imgui)
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/libs/imgui/backends)
 
-
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/application)
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/raytracer)
 
 # Link libs
-target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARY})
+target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARIES} ${OPENGL_LIBRARIES} ${GLEW_LIBRARY} glm::glm)
