@@ -1,11 +1,13 @@
 #include "application.hpp"
-#include "layer.hpp"
+#include "entry.hpp"
 #include "image.hpp"
 
 class RenderLayer : public BaseEngine::Layer {
     public:
         virtual void onUIRender() override {
+            ImGui::Begin("Settings");
 
+            ImGui::End();
         }
 };
 
