@@ -1,3 +1,6 @@
 [submodule "libs/imgui"]
 	path = libs/imgui
 	url = https://github.com/ocornut/imgui.git
+[submodule "libs/BaseEngine"]
+	path = libs/BaseEngine
+	url = https://github.com/dbooth05/BaseEngine.git
