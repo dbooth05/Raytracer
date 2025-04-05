@@ -15,11 +15,11 @@ file(GLOB SOURCES src/*.cpp)
 
 add_executable(Raytracer
     ${SOURCES}
-    src/main.cpp
 )
 
 target_include_directories(Raytracer PRIVATE
     ${CMAKE_SOURCE_DIR}/BaseEngine/include
+    ${CMAKE_SOURCE_DIR}/RaytracerApp/include
 )
 
 target_link_libraries(Raytracer PRIVATE
