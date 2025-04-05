@@ -2,7 +2,7 @@
 #include "entry.hpp"
 #include "timer.hpp"
 
-#include "renderer.hpp"
+#include "camera.hpp"
 
 using namespace BaseEngine;
 
@@ -23,7 +23,7 @@ class RenderLayer : public Layer {
             vp_wd = ImGui::GetContentRegionAvail().x;
             vp_ht = ImGui::GetContentRegionAvail().y;
 
-            auto img = renderer.getFinalImg();
+            auto img = cam.getFinalImg();
 
             if (img) {
                 ImGui::Image((ImTextureID)img->getDescriptorSet(),
@@ -45,14 +45,14 @@ class RenderLayer : public Layer {
         void render() {
             Timer timer;
 
-            renderer.onResize(vp_wd, vp_ht);
-            renderer.render();
+            cam.onResize(vp_wd, vp_ht);
+            cam.render();
 
             renderTime = timer.elapsedMillis();
         }
 
     private:
-        Renderer renderer;
+        Camera cam;
     uint32_t* img_data = nullptr;
         uint32_t vp_wd = 0, vp_ht = 0;
         float renderTime = 0;

@@ -1,8 +1,6 @@
-#include "renderer.hpp"
+#include "camera.hpp"
 
-#include "random.hpp"
-
-void Renderer::onResize(uint32_t wd, uint32_t ht) {
+void Camera::onResize(uint32_t wd, uint32_t ht) {
 
     if (f_img) {
         if (f_img->getWd() == wd && f_img->getHt())
@@ -16,7 +14,7 @@ void Renderer::onResize(uint32_t wd, uint32_t ht) {
     img_data = new uint32_t[wd * ht];
 }
 
-void Renderer::render() {
+void Camera::render() {
 
     for (uint32_t y = 0; y < f_img->getHt(); y++) {
         for (uint32_t x = 0; x < f_img->getWd(); x++) {
@@ -34,7 +32,7 @@ void Renderer::render() {
     f_img->setData(img_data);
 }
 
-uint32_t Renderer::perPixel(glm::vec2 coord) {
+uint32_t Camera::perPixel(glm::vec2 coord) {
     glm::vec3 rayOrig(0.0f, 0.0f, 2.0f);
     glm::vec3 rayDir(coord.x, coord.y, -1.0f);
     float radius = 0.5f;

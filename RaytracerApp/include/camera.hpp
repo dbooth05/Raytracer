@@ -1,14 +1,13 @@
-#ifndef RENDERER_HPP
-#define RENDERER_HPP
+#ifndef CAMERA_HPP
+#define CAMERA_HPP
 
 #include "image.hpp" // from BaseEngine
-
 #include <memory>
 #include <glm/glm.hpp>
 
-class Renderer {
+class Camera {
     public:
-        Renderer() = default;
+        Camera() = default;
 
         void onResize(uint32_t wd, uint32_t ht);
         void render();
