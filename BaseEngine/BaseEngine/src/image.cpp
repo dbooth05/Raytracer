@@ -191,7 +191,7 @@ namespace BaseEngine {
                 VkMemoryAllocateInfo alloc_info = {};
                 alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
                 alloc_info.allocationSize = req.size;
-                alloc_info.memoryTypeIndex = req.size;
+                alloc_info.memoryTypeIndex = Utils::getVulkanMemoryType(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, req.memoryTypeBits);
                 err = vkAllocateMemory(device, &alloc_info, nullptr, &m_StagingBufMem);
                 my_check_vk_result(err);
 
