@@ -1,52 +1,116 @@
 #include "camera.hpp"
 
-void Camera::onResize(uint32_t wd, uint32_t ht) {
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
 
-    if (f_img) {
-        if (f_img->getWd() == wd && f_img->getHt())
-            return;
-        f_img->resize(wd, ht);
-    } else {
-        f_img = std::make_shared<BaseEngine::Image>(wd, ht, BaseEngine::ImageFormat::RGBA);
-    }
+#include "input.hpp" // from BaseEngine
 
-    delete[] img_data;
-    img_data = new uint32_t[wd * ht];
+using namespace BaseEngine;
+
+Camera::Camera(float vertFov, float near, float far)
+    : vertFov(vertFov), near(near), far(far) {
+
+    forwardDir = glm::vec3(0, 0, -1);
+    pos = glm::vec3(0, 0, 3);
 }
 
-void Camera::render() {
+void Camera::onUpdate(float ts) {
+    glm::vec2 mousePos = Input::getMousePos();
+    glm::vec2 delta = (mousePos - lastMousePos) * 0.002f; // 0.002 is sensitivity
+    lastMousePos = mousePos;
 
-    for (uint32_t y = 0; y < f_img->getHt(); y++) {
-        for (uint32_t x = 0; x < f_img->getWd(); x++) {
-            glm::vec2 coord = {
-                (float) x / (float) f_img->getWd(),
-                (float) y / (float) f_img->getHt()
-            };
+    if (!Input::isMouseButtonDown(MouseButton::RIGHT)) {
+        Input::setCursorMode(CursorMode::NORMAL);
+        return;
+    }
 
+    Input::setCursorMode(CursorMode::LOCKED);
+
+    bool moved = false;
+
+    constexpr glm::vec3 upDir(0.0f, 1.0f, 0.0f); // could be modified to support rotating camera around in angles (i.e. 90 degrees)
+    glm::vec3 rightDir = glm::cross(forwardDir, upDir);
+
+    float speed = 5.0f;
+
+    // movement (a,w,s,d)
+    if (Input::isKeyDown(KeyCode::W)) {
+        pos += forwardDir * speed * ts;
+        moved = true;
+    } else if (Input::isKeyDown(KeyCode::S)) {
+        pos -= forwardDir * speed * ts;
+    }
+
+    if (Input::isKeyDown(KeyCode::A)) {
+        pos -= rightDir * speed * ts;
+        moved = true;
+    } else if (Input::isKeyDown(KeyCode::D)) {
+        pos += rightDir * speed * ts;
+    }
+
+    if (Input::isKeyDown(KeyCode::Q)) {
+        pos -= upDir * speed * ts;
+        moved = true;
+    } else if (Input::isKeyDown(KeyCode::E)) {
+        pos += upDir * speed * ts;
+        moved = true;
+    }
+
+    // rotation
+    if (delta.x != 0.0f || delta.y != 0.0f) {
+        float pitch = delta.y * getRotationSpeed();
+        float yaw = delta.x * getRotationSpeed();
+
+        glm::quat q = glm::normalize(glm::cross(glm::angleAxis(-pitch, rightDir), glm::angleAxis(-yaw, glm::vec3(0.0f, 1.0f, 0.0f))));
+        forwardDir = glm::rotate(q, forwardDir);
+
+        moved = true;
+    }
+
+    if (moved) {
+        recalcView();
+        recalcRayDirs();
+    }
+}
+
+void Camera::onResize(uint32_t wd, uint32_t ht) {
+    if (wd == vpWd && ht == vpHt) return;
+
+    vpWd = wd;
+    vpHt = ht;
+
+    recalcProj();
+    recalcRayDirs();
+}
+
+float Camera::getRotationSpeed() {
+    return 0.3f;
+}
+
+void Camera::recalcProj() {
+    proj = glm::perspectiveFov(glm::radians(vertFov), (float) vpWd, (float) vpHt, near, far);
+    invProj = glm::inverse(proj);
+}
+
+void Camera::recalcView() {
+    view = glm::lookAt(pos, pos + forwardDir, glm::vec3(0, 1, 0));
+    invView = glm::inverse(view);
+}
+
+void Camera::recalcRayDirs() {
+    rayDirs.resize(vpWd * vpHt);
+
+    for (uint32_t y = 0; y < vpHt; y++) {
+        for (uint32_t x = 0; x < vpWd; x++) {
+            glm::vec2 coord = { (float) x / (float) vpWd,
+                                (float) y / (float) vpHt };
             coord = coord * 2.0f - 1.0f; // -1 -> 1
 
-            img_data[x + y * f_img->getWd()] = perPixel(coord);
+            glm::vec4 target = invProj * glm::vec4(coord.x, coord.y, 1, 1);
+            glm::vec3 rayDir = glm::vec3(invView * glm::vec4(glm::normalize(glm::vec3(target) / target.w), 0)); // world space
+
+            rayDirs[x + y * vpWd] = rayDir;
         }
     }
-
-    f_img->setData(img_data);
-}
-
-uint32_t Camera::perPixel(glm::vec2 coord) {
-    glm::vec3 rayOrig(0.0f, 0.0f, 2.0f);
-    glm::vec3 rayDir(coord.x, coord.y, -1.0f);
-    float radius = 0.5f;
-
-    // a = ray orig, b = ray dir, c = radius, t = hit dist
-    float a = glm::dot(rayDir, rayDir);
-    float b = 2.0f * glm::dot(rayOrig, rayDir);
-    float c = glm::dot(rayOrig, rayOrig) - radius * radius;
-
-    float discrim = b * b - 4 * a * c;
-
-    if (discrim >= 0.0f) {
-        return 0xffff00ff;
-    }
-
-    return 0xff000000;
 }

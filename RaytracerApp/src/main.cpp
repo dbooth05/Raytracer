@@ -2,12 +2,19 @@
 #include "entry.hpp"
 #include "timer.hpp"
 
+#include "renderer.hpp"
 #include "camera.hpp"
 
 using namespace BaseEngine;
 
 class RenderLayer : public Layer {
     public:
+        RenderLayer() : cam(45.0f, 0.1f, 100.0f) {}
+
+        virtual void onUpdate(float ts) override {
+            cam.onUpdate(ts);
+        }
+
         virtual void onUIRender() override {
             ImGui::Begin("Settings");
                 ImGui::Text("Render time: %.3fms", renderTime);
@@ -23,7 +30,7 @@ class RenderLayer : public Layer {
             vp_wd = ImGui::GetContentRegionAvail().x;
             vp_ht = ImGui::GetContentRegionAvail().y;
 
-            auto img = cam.getFinalImg();
+            auto img = renderer.getFinalImg();
 
             if (img) {
                 ImGui::Image((ImTextureID)img->getDescriptorSet(),
@@ -45,13 +52,15 @@ class RenderLayer : public Layer {
         void render() {
             Timer timer;
 
+            renderer.onResize(vp_wd, vp_ht);
             cam.onResize(vp_wd, vp_ht);
-            cam.render();
+            renderer.render(cam);
 
             renderTime = timer.elapsedMillis();
         }
 
     private:
+        Renderer renderer;
         Camera cam;
     uint32_t* img_data = nullptr;
         uint32_t vp_wd = 0, vp_ht = 0;
