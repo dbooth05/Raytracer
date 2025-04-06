@@ -12,12 +12,22 @@ using namespace BaseEngine;
 class RenderLayer : public Layer {
     public:
         RenderLayer() : cam(45.0f, 0.1f, 100.0f) {
-            Sphere sphere;
-            sphere.pos = glm::vec3(-0.5f, 0.0f, 0.0f);
-            sphere.radius = 0.5;
-            sphere.albedo = glm::vec4(1.0f, 0.0f, 1.0f, 1.0f);
+            {
+                Sphere sphere;
+                sphere.pos = glm::vec3(-0.5f, 0.0f, 0.0f);
+                sphere.radius = 0.5;
+                sphere.albedo = glm::vec4(1.0f, 0.0f, 1.0f, 1.0f);
 
-            scene.Spheres.push_back(sphere);
+                scene.Spheres.push_back(sphere);
+            }
+
+            {
+                Sphere sphere;
+                sphere.pos = glm::vec3(1.0f, 0.0f, -5.0f);
+                sphere.radius = 0.5f;
+                sphere.albedo = glm::vec3(0.0f, 0.0f, 1.0f);
+                scene.Spheres.push_back(sphere);
+            }
         }
 
         virtual void onUpdate(float ts) override {
@@ -36,6 +46,13 @@ class RenderLayer : public Layer {
 
             // Panel for Scene Layout
             ImGui::Begin("Scene");
+
+                if (ImGui::Button("Add Shape")) {
+                    showAddShape = true;
+                }
+
+                ImGui::Separator();
+
                 for (size_t i = 0; i < scene.Spheres.size(); i++) {
                     ImGui::PushID(i);
 
@@ -72,6 +89,28 @@ class RenderLayer : public Layer {
             ImGui::End();
             ImGui::PopStyleVar();
 
+            // Create new shape window (when pressed)
+            if (showAddShape) {
+                ImGui::SetNextWindowSize(ImVec2(300, 350), ImGuiCond_Appearing);
+                ImGui::Begin("New Shape Configuration");
+
+                        static Sphere sp;
+                        ImGui::DragFloat3("Position", glm::value_ptr(sp.pos), 0.1f);
+                        ImGui::DragFloat("Radius", &sp.radius);
+                        ImGui::ColorPicker3("Albedo", glm::value_ptr(sp.albedo));
+
+                        if (ImGui::Button("Confirm")) {
+                            scene.Spheres.push_back(sp);
+                            showAddShape = false;
+                        }
+                        ImGui::SameLine();
+                        if (ImGui::Button("Exit")) {
+                            showAddShape = false;
+                        }
+
+                ImGui::End();
+            }
+
             render();
         }
 
@@ -92,6 +131,8 @@ class RenderLayer : public Layer {
     uint32_t* img_data = nullptr;
         uint32_t vp_wd = 0, vp_ht = 0;
         float renderTime = 0;
+
+        bool showAddShape = false;
 };
 
 BaseEngine::Application* BaseEngine::createApplicaion(int argc, char** argv) {
