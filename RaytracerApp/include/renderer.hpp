@@ -3,6 +3,7 @@
 
 #include "image.hpp" // from BaseEngine
 
+#include "scene.hpp"
 #include "camera.hpp"
 #include "ray.hpp"
 
@@ -18,14 +19,14 @@ class Renderer {
         Renderer() = default;
 
         void onResize(uint32_t wd, uint32_t ht);
-        void render(const Camera& cam);
+        void render(const Scene& scene, const Camera& cam);
 
         std::shared_ptr<BaseEngine::Image> getFinalImg() const {
             return f_img;
         }
 
     private:
-        glm::vec4 traceRay(Ray ray);
+        glm::vec4 traceRay(const Scene& scene, Ray ray);
 
     private:
         std::shared_ptr<BaseEngine::Image> f_img; // final img

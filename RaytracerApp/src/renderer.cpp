@@ -24,7 +24,7 @@ void Renderer::onResize(uint32_t wd, uint32_t ht) {
     img_data = new uint32_t[wd * ht];
 }
 
-void Renderer::render(const Camera& cam) {
+void Renderer::render(const Scene& scene, const Camera& cam) {
 
     const glm::vec3& orig = cam.getPos();
 
@@ -35,7 +35,7 @@ void Renderer::render(const Camera& cam) {
         for (uint32_t x = 0; x < f_img->getWd(); x++) {
             ray.dir = cam.getRayDirs()[x + y * f_img->getWd()];
 
-            glm::vec4 col = traceRay(ray);
+            glm::vec4 col = traceRay(scene, ray);
             col = glm::clamp(col, glm::vec4(0.0f), glm::vec4(1.0f));
             img_data[x + y * f_img->getWd()] = Utils::convertToRGBA(col);
         }
@@ -44,31 +44,42 @@ void Renderer::render(const Camera& cam) {
     f_img->setData(img_data);
 }
 
-glm::vec4 Renderer::traceRay(Ray ray) {
-    float radius = 0.5f;
+glm::vec4 Renderer::traceRay(const Scene& scene, Ray ray) {
 
-    // a = ray orig, b = ray dir, c = radius, t = hit dist
-    float a = glm::dot(ray.dir, ray.dir);
-    float b = 2.0f * glm::dot(ray.orig, ray.dir);
-    float c = glm::dot(ray.orig, ray.orig) - radius * radius;
-
-    float discrim = b * b - 4.0f * a * c;
-
-    if (discrim < 0.0f) {
+    if (scene.Spheres.size() == 0) {
         return glm::vec4(0, 0, 0, 1);
     }
 
-    float closest = (-b - glm::sqrt(discrim)) / (2.0f * a);
-    float t0 = (-b + glm::sqrt(discrim)) / (2.0f * a); // second hit dist
+    const Sphere* closestSp = nullptr;
+    float hitDist = std::numeric_limits<float>::max();
 
-    glm::vec3 hitPnt = ray.orig + ray.dir * closest;
-    glm::vec3 norm = glm::normalize(hitPnt);
+    for (const Sphere& sp : scene.Spheres) {
+        glm::vec3 orig = ray.orig - sp.pos;
+
+        float a = glm::dot(ray.dir, ray.dir);
+        float b = 2.0f * glm::dot(orig, ray.dir);
+        float c = glm::dot(orig, orig) - sp.radius * sp.radius;
+
+        float discrim = b * b - 4.0f * a * c;
+        if (discrim < 0.0f) continue;
+
+        float closest = (-b - glm::sqrt(discrim)) / (2.0f * a);
+        if (closest < hitDist) {
+            hitDist = closest;
+            closestSp = &sp;
+        }
+    }
+
+    if (closestSp == nullptr) return glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+
+    glm::vec3 orig = ray.orig - closestSp->pos;
+    glm::vec3 hitPnt = orig + ray.dir * hitDist;
+    glm::vec3 normal = glm::normalize(hitPnt);
 
     glm::vec3 lightDir = glm::normalize(glm::vec3(-1, -1, -1));
-    float ligthIntens = glm::max(glm::dot(norm, -lightDir), 0.0f); // cos(angle)
+    float lightIntens = glm::max(glm::dot(normal, -lightDir), 0.0f); // == cos(angle)
 
-    glm::vec3 sphereCol(1, 0, 1);
-    sphereCol *= ligthIntens;
-
-    return glm::vec4(sphereCol, 1.0f);
+    glm::vec3 spCol = closestSp->albedo;
+    spCol *= lightIntens;
+    return glm::vec4(spCol, 1.0f);
 }
