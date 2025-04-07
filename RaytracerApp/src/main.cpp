@@ -42,6 +42,8 @@ class RenderLayer : public Layer {
                     render();
                 }
 
+                ImGui::ColorPicker3("Background Color", glm::value_ptr(scene.background));
+
             ImGui::End();
 
             // Panel for Scene Layout
@@ -94,18 +96,28 @@ class RenderLayer : public Layer {
                 ImGui::SetNextWindowSize(ImVec2(300, 350), ImGuiCond_Appearing);
                 ImGui::Begin("New Shape Configuration");
 
-                        static Sphere sp;
+                        static Sphere sp_tmp;
+                        static bool tempSphereAdded = false;
+
+                        if (!tempSphereAdded) {
+                            scene.Spheres.push_back(sp_tmp);
+                            tempSphereAdded = true;
+                        }
+
+                        Sphere& sp = scene.Spheres.back();
                         ImGui::DragFloat3("Position", glm::value_ptr(sp.pos), 0.1f);
                         ImGui::DragFloat("Radius", &sp.radius);
                         ImGui::ColorPicker3("Albedo", glm::value_ptr(sp.albedo));
 
                         if (ImGui::Button("Confirm")) {
-                            scene.Spheres.push_back(sp);
                             showAddShape = false;
+                            tempSphereAdded = false;
                         }
                         ImGui::SameLine();
                         if (ImGui::Button("Exit")) {
+                            scene.Spheres.pop_back();
                             showAddShape = false;
+                            tempSphereAdded = false;
                         }
 
                 ImGui::End();

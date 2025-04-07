@@ -47,7 +47,7 @@ void Renderer::render(const Scene& scene, const Camera& cam) {
 glm::vec4 Renderer::traceRay(const Scene& scene, Ray ray) {
 
     if (scene.Spheres.size() == 0) {
-        return glm::vec4(0, 0, 0, 1);
+        return scene.background;
     }
 
     const Sphere* closestSp = nullptr;
@@ -70,7 +70,7 @@ glm::vec4 Renderer::traceRay(const Scene& scene, Ray ray) {
         }
     }
 
-    if (closestSp == nullptr) return glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    if (closestSp == nullptr) return scene.background;
 
     glm::vec3 orig = ray.orig - closestSp->pos;
     glm::vec3 hitPnt = orig + ray.dir * hitDist;
