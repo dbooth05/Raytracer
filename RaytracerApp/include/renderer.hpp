@@ -26,10 +26,24 @@ class Renderer {
         }
 
     private:
-        glm::vec4 traceRay(const Scene& scene, Ray ray);
+        struct HitPayload {
+            float hit_dist;
+            glm::vec3 world_pos;
+            glm::vec3 world_norm;
+
+            int obj_idx;
+        };
+
+        glm::vec4 perPixel(uint32_t x, uint32_t y); // ray generation
+
+        HitPayload traceRay(const Ray& ray);
+        HitPayload closestHit(const Ray& ray, float hit_dist, int obj_idx);
+        HitPayload miss(const Ray& ray);
 
     private:
         std::shared_ptr<BaseEngine::Image> f_img; // final img
+        const Scene* active_scene = nullptr;
+        const Camera* active_camera = nullptr;
         uint32_t* img_data = nullptr;
 };
 

@@ -42,6 +42,8 @@ class RenderLayer : public Layer {
                     render();
                 }
 
+                ImGui::DragInt("Bounces", &scene.bounces, 1, 1, INT_MAX); // id, data, step, min, max
+
                 ImGui::ColorPicker3("Background Color", glm::value_ptr(scene.background));
 
             ImGui::End();

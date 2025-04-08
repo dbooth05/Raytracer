@@ -1,5 +1,7 @@
 #include "renderer.hpp"
 
+#include <iostream>
+
 static uint32_t Utils::convertToRGBA(const glm::vec4& col) {
         uint8_t r = (uint8_t)(col.r * 255.0f);
         uint8_t g = (uint8_t)(col.g * 255.0f);
@@ -26,16 +28,12 @@ void Renderer::onResize(uint32_t wd, uint32_t ht) {
 
 void Renderer::render(const Scene& scene, const Camera& cam) {
 
-    const glm::vec3& orig = cam.getPos();
-
-    Ray ray;
-    ray.orig = cam.getPos();
+    active_scene = &scene;
+    active_camera = &cam;
 
     for (uint32_t y = 0; y < f_img->getHt(); y++) {
         for (uint32_t x = 0; x < f_img->getWd(); x++) {
-            ray.dir = cam.getRayDirs()[x + y * f_img->getWd()];
-
-            glm::vec4 col = traceRay(scene, ray);
+            glm::vec4 col = perPixel(x, y);
             col = glm::clamp(col, glm::vec4(0.0f), glm::vec4(1.0f));
             img_data[x + y * f_img->getWd()] = Utils::convertToRGBA(col);
         }
@@ -44,16 +42,15 @@ void Renderer::render(const Scene& scene, const Camera& cam) {
     f_img->setData(img_data);
 }
 
-glm::vec4 Renderer::traceRay(const Scene& scene, Ray ray) {
+Renderer::HitPayload Renderer::traceRay(const Ray& ray) {
 
-    if (scene.Spheres.size() == 0) {
-        return scene.background;
-    }
 
-    const Sphere* closestSp = nullptr;
+    int closestSp = -1;
     float hitDist = std::numeric_limits<float>::max();
 
-    for (const Sphere& sp : scene.Spheres) {
+    for (size_t i = 0; i < active_scene->Spheres.size(); i++) {
+
+        const Sphere& sp = active_scene->Spheres[i];
         glm::vec3 orig = ray.orig - sp.pos;
 
         float a = glm::dot(ray.dir, ray.dir);
@@ -64,22 +61,69 @@ glm::vec4 Renderer::traceRay(const Scene& scene, Ray ray) {
         if (discrim < 0.0f) continue;
 
         float closest = (-b - glm::sqrt(discrim)) / (2.0f * a);
-        if (closest < hitDist) {
+        if (closest > 0.0f && closest < hitDist) {
             hitDist = closest;
-            closestSp = &sp;
+            closestSp = (int) i;
         }
     }
 
-    if (closestSp == nullptr) return scene.background;
+    if (closestSp < 0) return miss(ray);
 
-    glm::vec3 orig = ray.orig - closestSp->pos;
-    glm::vec3 hitPnt = orig + ray.dir * hitDist;
-    glm::vec3 normal = glm::normalize(hitPnt);
+    return closestHit(ray, hitDist, closestSp);
+}
 
-    glm::vec3 lightDir = glm::normalize(glm::vec3(-1, -1, -1));
-    float lightIntens = glm::max(glm::dot(normal, -lightDir), 0.0f); // == cos(angle)
+Renderer::HitPayload Renderer::closestHit(const Ray& ray, float hit_dist, int obj_idx) {
 
-    glm::vec3 spCol = closestSp->albedo;
-    spCol *= lightIntens;
-    return glm::vec4(spCol, 1.0f);
+    Renderer::HitPayload payload;
+    payload.hit_dist = hit_dist;
+    payload.obj_idx = obj_idx;
+
+    const Sphere& closestSp = active_scene->Spheres[obj_idx];
+
+    glm::vec3 orig = ray.orig - closestSp.pos;
+    payload.world_pos = orig + ray.dir * hit_dist;
+    payload.world_norm = glm::normalize(payload.world_pos);
+
+    payload.world_pos += closestSp.pos;
+
+    return payload;
+}
+
+Renderer::HitPayload Renderer::miss(const Ray& ray) {
+    Renderer::HitPayload payload;
+    payload.hit_dist = -1.0f;
+    return payload;
+}
+
+glm::vec4 Renderer::perPixel(uint32_t x, uint32_t y) {
+    Ray ray;
+    ray.orig = active_camera->getPos();
+    ray.dir = active_camera->getRayDirs()[x + y * f_img->getWd()];
+
+    glm::vec3 col(0.0f);
+    float multiplier = 1.0f;
+
+    for (int i = 0; i < active_scene->bounces; i++) {
+        Renderer::HitPayload payload = traceRay(ray);
+        if (payload.hit_dist < 0.0f) {
+            glm::vec3 sky = active_scene->background;
+            col += sky * multiplier;
+            break;
+        }
+
+        glm::vec3 light_dir = glm::normalize(glm::vec3(-1, -1, -1));
+        float light_intens = glm::max(glm::dot(payload.world_norm, -light_dir), 0.0f); // == cos(angle)
+
+        const Sphere& sp = active_scene->Spheres[payload.obj_idx];
+        glm::vec3 spCol = sp.albedo;
+        spCol *= light_intens;
+        col += spCol * multiplier;
+
+        multiplier *= 0.7f;
+
+        ray.orig = payload.world_pos + payload.world_norm * 0.001f;
+        ray.dir = glm::reflect(ray.dir, payload.world_norm);
+    }
+
+    return glm::vec4(col, 1.0f);
 }

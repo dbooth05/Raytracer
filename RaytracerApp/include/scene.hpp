@@ -8,7 +8,8 @@
 
 struct Scene {
     std::vector<Sphere> Spheres;
-    glm::vec4 background{0.0f, 0.0f, 0.0f, 1.0f};
+    glm::vec3 background{0.0f, 0.0f, 0.0f};
+    int bounces = 10;
 };
 
 #endif
