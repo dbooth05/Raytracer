@@ -34,3 +34,4 @@
 # VSCODE and git
 .vscode/
 build/
+.cache/
