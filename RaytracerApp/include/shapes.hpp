@@ -8,7 +8,8 @@ class Sphere {
         glm::vec3 pos{0.0f, 0.0f, 0.0f};
         float radius = 0.5f;
 
-        glm::vec3 albedo;
+        int mat_idx;
+        // glm::vec3 albedo;
 };
 
 #endif

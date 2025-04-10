@@ -5,11 +5,14 @@
 #include <vector>
 
 #include "shapes.hpp"
+#include "material.hpp"
 
 struct Scene {
     std::vector<Sphere> Spheres;
+    std::vector<Material> Materials;
+
     glm::vec3 background{0.0f, 0.0f, 0.0f};
-    int bounces = 10;
+    int bounces = 5;
 };
 
 #endif

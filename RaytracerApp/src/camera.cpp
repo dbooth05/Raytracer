@@ -12,7 +12,7 @@ Camera::Camera(float vertFov, float near, float far)
     : vertFov(vertFov), near(near), far(far) {
 
     forwardDir = glm::vec3(0, 0, -1);
-    pos = glm::vec3(0, 0, 3);
+    pos = glm::vec3(0, 0, 6);
 }
 
 void Camera::onUpdate(float ts) {
