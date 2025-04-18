@@ -46,7 +46,9 @@ class RenderLayer : public Layer {
         }
 
         virtual void onUpdate(float ts) override {
-            cam.onUpdate(ts);
+            if (cam.onUpdate(ts)) {
+                renderer.resetFrameIdx();
+            }
         }
 
         virtual void onUIRender() override {
@@ -57,9 +59,15 @@ class RenderLayer : public Layer {
                     render();
                 }
 
+                ImGui::Checkbox("Accumulate", &renderer.getSettings().accumulate);
+
+                if (ImGui::Button("Reset")) {
+                    renderer.resetFrameIdx();
+                }
+
                 ImGui::DragInt("Bounces", &scene.bounces, 1, 1, INT_MAX); // id, data, step, min, max
 
-                ImGui::ColorPicker3("Background Color", glm::value_ptr(scene.background));
+                ImGui::ColorEdit3("Background Color", glm::value_ptr(scene.background));
 
             ImGui::End();
 
@@ -175,7 +183,7 @@ class RenderLayer : public Layer {
                     }
 
                     Material& m = scene.Materials.back();
-                    ImGui::ColorPicker3("Albedo", glm::value_ptr(m.albedo));
+                    ImGui::ColorEdit3("Albedo", glm::value_ptr(m.albedo));
                     ImGui::DragFloat("Roughness", &m.roughness, 0.05f, 0.0f, 1.0f);
                     ImGui::DragFloat("Metallic", &m.metallic, 0.05f, 0.0f, 1.0f);
 

@@ -2,6 +2,8 @@
 #include "random.hpp"
 
 #include <iostream>
+#include <memory>
+#include <cstring>
 
 static uint32_t Utils::convertToRGBA(const glm::vec4& col) {
         uint8_t r = (uint8_t)(col.r * 255.0f);
@@ -25,6 +27,9 @@ void Renderer::onResize(uint32_t wd, uint32_t ht) {
 
     delete[] img_data;
     img_data = new uint32_t[wd * ht];
+
+    delete[] accum_data;
+    accum_data = new glm::vec4[wd * ht];
 }
 
 void Renderer::render(const Scene& scene, const Camera& cam) {
@@ -32,15 +37,30 @@ void Renderer::render(const Scene& scene, const Camera& cam) {
     active_scene = &scene;
     active_camera = &cam;
 
+    if (frame_idx == 1) {
+        memset(accum_data, 0, f_img->getWd() * f_img->getHt() * sizeof(glm::vec4));
+    }
+
     for (uint32_t y = 0; y < f_img->getHt(); y++) {
         for (uint32_t x = 0; x < f_img->getWd(); x++) {
             glm::vec4 col = perPixel(x, y);
-            col = glm::clamp(col, glm::vec4(0.0f), glm::vec4(1.0f));
-            img_data[x + y * f_img->getWd()] = Utils::convertToRGBA(col);
+            accum_data[x + y * f_img->getWd()] += col;
+
+            glm::vec4 accum_col = accum_data[x + y * f_img->getWd()];
+            accum_col /= (float) frame_idx;
+
+            accum_col = glm::clamp(accum_col, glm::vec4(0.0f), glm::vec4(1.0f));
+            img_data[x + y * f_img->getWd()] = Utils::convertToRGBA(accum_col);
         }
     }
 
     f_img->setData(img_data);
+
+    if (settings.accumulate) {
+        frame_idx++;
+    } else {
+        frame_idx = 1;
+    }
 }
 
 Renderer::HitPayload Renderer::traceRay(const Ray& ray) {

@@ -16,6 +16,11 @@ namespace Utils {
 
 class Renderer {
     public:
+        struct Settings {
+            bool accumulate = true;
+        };
+
+    public:
         Renderer() = default;
 
         void onResize(uint32_t wd, uint32_t ht);
@@ -24,6 +29,10 @@ class Renderer {
         std::shared_ptr<BaseEngine::Image> getFinalImg() const {
             return f_img;
         }
+
+        void resetFrameIdx() { frame_idx = 1; }
+
+        Settings& getSettings() { return settings; }
 
     private:
         struct HitPayload {
@@ -42,9 +51,16 @@ class Renderer {
 
     private:
         std::shared_ptr<BaseEngine::Image> f_img; // final img
+                                                  
         const Scene* active_scene = nullptr;
         const Camera* active_camera = nullptr;
+  
         uint32_t* img_data = nullptr;
+        glm::vec4* accum_data = nullptr;
+
+        uint32_t frame_idx = 1;
+
+        Settings settings;
 };
 
 #endif

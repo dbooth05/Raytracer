@@ -15,14 +15,14 @@ Camera::Camera(float vertFov, float near, float far)
     pos = glm::vec3(0, 0, 6);
 }
 
-void Camera::onUpdate(float ts) {
+bool Camera::onUpdate(float ts) {
     glm::vec2 mousePos = Input::getMousePos();
     glm::vec2 delta = (mousePos - lastMousePos) * 0.002f; // 0.002 is sensitivity
     lastMousePos = mousePos;
 
     if (!Input::isMouseButtonDown(MouseButton::RIGHT)) {
         Input::setCursorMode(CursorMode::NORMAL);
-        return;
+        return false;
     }
 
     Input::setCursorMode(CursorMode::LOCKED);
@@ -72,6 +72,8 @@ void Camera::onUpdate(float ts) {
         recalcView();
         recalcRayDirs();
     }
+
+    return moved;
 }
 
 void Camera::onResize(uint32_t wd, uint32_t ht) {

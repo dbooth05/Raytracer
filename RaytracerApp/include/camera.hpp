@@ -8,7 +8,7 @@ class Camera {
     public:
         Camera(float vertFov, float near, float far);
 
-        void onUpdate(float ts);
+        bool onUpdate(float ts);
         void onResize(uint32_t wd, uint32_t ht);
 
         const glm::mat4& getProj() const { return proj; }
