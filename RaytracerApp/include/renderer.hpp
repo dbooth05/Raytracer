@@ -31,7 +31,6 @@ class Renderer {
         }
 
         void resetFrameIdx() { frame_idx = 1; }
-
         Settings& getSettings() { return settings; }
 
     private:
@@ -51,10 +50,10 @@ class Renderer {
 
     private:
         std::shared_ptr<BaseEngine::Image> f_img; // final img
-                                                  
+
         const Scene* active_scene = nullptr;
         const Camera* active_camera = nullptr;
-  
+
         uint32_t* img_data = nullptr;
         glm::vec4* accum_data = nullptr;
 

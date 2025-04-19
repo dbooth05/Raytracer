@@ -1,6 +1,6 @@
 # Raytracer
 
-Welcome to this Ray Tracer Project. This project was inspired by a previous class project (https://github.com/dbooth05/CS_3360). This project is based on Peter Shirley's _Raytracing In One Weekend_ series (https://raytracing.github.io/) and on Yan Chernikov's publicly available Ray Tracer project/youtube series (https://github.com/TheCherno/RayTracing). 
+Welcome to this Ray Tracer Project. This project was inspired by a previous class project (https://github.com/dbooth05/CS_3360). This project is based on Peter Shirley's _Raytracing In One Weekend_ series (https://raytracing.github.io/) and on Yan Chernikov's publicly available Ray Tracer project/youtube series (https://github.com/TheCherno/RayTracing).
 
 In my previous Ray Tracer project, I only focussed on what was required:
 - Shapes: spheres, quads, triangles
