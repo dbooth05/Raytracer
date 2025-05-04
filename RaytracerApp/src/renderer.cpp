@@ -136,15 +136,6 @@ glm::vec4 Renderer::perPixel(uint32_t x, uint32_t y) {
         float light_intens = glm::max(glm::dot(payload.world_norm, -light_dir), 0.0f); // == cos(angle)
 
         const Sphere& sp = active_scene->Spheres[payload.obj_idx];
-        // glm::vec3 spCo = sp.albedo;
-        // spCol *= light_intens;
-        // col += spCol * multiplier;
-        //
-        // multiplier *= 0.7f;
-        //
-        // ray.orig = payload.world_pos + payload.world_norm * 0.001f;
-        // ray.dir = glm::reflect(ray.dir, payload.world_norm);
-
         const Material& m = active_scene->Materials[sp.mat_idx];
         glm::vec3 spCol = m.albedo;
         spCol *= light_intens;

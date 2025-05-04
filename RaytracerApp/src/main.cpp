@@ -23,21 +23,14 @@ class RenderLayer : public Layer {
 
             {
                 Sphere sphere;
-                sphere.pos = glm::vec3(-0.5f, 0.0f, 0.0f);
-                // sphere.radius = 0.5;
-                // sphere.albedo = glm::vec4(1.0f, 0.0f, 1.0f, 1.0f);
+                sphere.pos = glm::vec3(0.0f, 0.0f, 0.0f);
                 sphere.radius = 1.0f;
                 sphere.mat_idx = 0;
-
                 scene.Spheres.push_back(sphere);
             }
 
             {
                 Sphere sphere;
-                // sphere.pos = glm::vec3(1.0f, 0.0f, -5.0f);
-                // sphere.radius = 0.5f;
-                // sphere.albedo = glm::vec3(0.0f, 0.0f, 1.0f);
-
                 sphere.pos = glm::vec3(0.0f, -101.0f, 0.0f);
                 sphere.radius = 100.0f;
                 sphere.mat_idx = 1;
